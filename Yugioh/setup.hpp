@@ -130,7 +130,7 @@ void nextLevel(Json::Value& ygoData, std::string& stringRef) { //Does not store 
                 }
                 //Removing the archetype
                 //std::cout << ygoData["data"][cardValue]["archetype"].asString() << std::endl;
-                if(!effectString.find(ygoData["data"][cardValue]["archetype"].asString().empty())) {
+                if(!ygoData["data"][cardValue]["archetype"].asString().empty()) {
                 for(std::size_t foundName = effectString.find(ygoData["data"][cardValue]["archetype"].asString()); foundName != std::string::npos;
                 foundName = effectString.find(ygoData["data"][cardValue]["archetype"].asString())) {
                     effectString.erase(foundName, ygoData["data"][cardValue]["archetype"].asString().size());
@@ -176,7 +176,7 @@ void nextLevel(Json::Value& ygoData, std::string& stringRef) { //Does not store 
                     effectString.insert(foundName, "{name}");
                 }
                 //Removing the archetype
-                if(!effectString.find(ygoData["data"][cardValue]["archetype"].asString().empty())) {
+                if(!ygoData["data"][cardValue]["archetype"].asString().empty()) {
                 for(std::size_t foundName = effectString.find(ygoData["data"][cardValue]["archetype"].asString()); foundName != std::string::npos;
                 foundName = effectString.find(ygoData["data"][cardValue]["archetype"].asString())) {
                     effectString.erase(foundName, ygoData["data"][cardValue]["archetype"].asString().size());
