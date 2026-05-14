@@ -38,11 +38,7 @@ bool returnRandomCard(Json::Value& ygoData, std::string& stringRef) {
     cardValue = rand() % numberOfYugiohCards;
     type = (rand() % 3);
     type++;
-    std::cout << "Random Number: " << cardValue << std::endl;
-    if(ygoData["data"].isValidIndex(cardValue)) {
-        std::cout << cardValue << ": " << ygoData["data"][cardValue]["name"].asString() << std::endl;
-    }
-    else {
+    if(!ygoData["data"].isValidIndex(cardValue)) {
         std::cout << "Failed to pull card." << std::endl;
         return false;
     }
@@ -102,6 +98,21 @@ void nextLevel(Json::Value& ygoData, std::string& stringRef) { //Does not store 
                 stringRef.append("\n");
                 break;
             case 3:
+                //Removing the name of the card from the effect
+                for(std::size_t foundName = effectString.find(ygoData["data"][cardValue]["name"].asString()); foundName != std::string::npos;
+                foundName = effectString.find(ygoData["data"][cardValue]["name"].asString())) {
+                    effectString.erase(foundName, ygoData["data"][cardValue]["name"].asString().size());
+                    effectString.insert(foundName, "name");
+                }
+                //Removing the archetype
+                //std::cout << ygoData["data"][cardValue]["archetype"].asString() << std::endl;
+                if(!effectString.find(ygoData["data"][cardValue]["archetype"].asString().empty())) {
+                for(std::size_t foundName = effectString.find(ygoData["data"][cardValue]["archetype"].asString()); foundName != std::string::npos;
+                foundName = effectString.find(ygoData["data"][cardValue]["archetype"].asString())) {
+                    effectString.erase(foundName, ygoData["data"][cardValue]["archetype"].asString().size());
+                    effectString.insert(foundName, "archetype");
+                }
+                }
                 for(std::string::iterator itStr = effectString.begin(); itStr != effectString.end(); itStr++) {
                     stringRef.append(itStr, itStr+1);
                     spacing++;
@@ -109,6 +120,8 @@ void nextLevel(Json::Value& ygoData, std::string& stringRef) { //Does not store 
                         stringRef.append("\n");
                         spacing = 0;
                     }
+                    if(*itStr == '\n')
+                        spacing = 0;
                 }
                 stringRef.append("\n");
                 break;
@@ -132,6 +145,18 @@ void nextLevel(Json::Value& ygoData, std::string& stringRef) { //Does not store 
                 stringRef.append("\n");
                 break;
             case 3:
+                //Removing the name of the card from the effect
+                for(std::size_t foundName = effectString.find(ygoData["data"][cardValue]["name"].asString()); foundName != std::string::npos;
+                foundName = effectString.find(ygoData["data"][cardValue]["name"].asString())) {
+                    effectString.erase(foundName, ygoData["data"][cardValue]["name"].asString().size());
+                    effectString.insert(foundName, "{name}");
+                }
+                //Removing the archetype
+                for(std::size_t foundName = effectString.find(ygoData["data"][cardValue]["archetype"].asString()); foundName != std::string::npos;
+                foundName = effectString.find(ygoData["data"][cardValue]["archetype"].asString())) {
+                    effectString.erase(foundName, ygoData["data"][cardValue]["archetype"].asString().size());
+                    effectString.insert(foundName, "XarchetypeX");
+                }
                 for(std::string::iterator itStr = effectString.begin(); itStr != effectString.end(); itStr++) {
                     stringRef.append(itStr, itStr+1);
                     spacing++;
@@ -139,6 +164,8 @@ void nextLevel(Json::Value& ygoData, std::string& stringRef) { //Does not store 
                         stringRef.append("\n");
                         spacing = 0;
                     }
+                    if(*itStr == '\n')
+                        spacing = 0;
                 }
                 stringRef.append("\n");
                 break;
@@ -151,6 +178,13 @@ void nextLevel(Json::Value& ygoData, std::string& stringRef) { //Does not store 
             if(type > 3) //Check OverFlow
                 type = 1;
         }
+    }
+    else {
+        std::cout << "Random Number: " << cardValue << std::endl;
+        if(ygoData["data"].isValidIndex(cardValue)) {
+            std::cout << cardValue << ": " << ygoData["data"][cardValue]["name"].asString() << std::endl;
+        }
+        valid = false;
     }
 }
 
@@ -184,6 +218,7 @@ int main() {
 
     sf::RenderWindow window;
     sf::Text text(font);
+    bool typing = false;
     text.setFillColor(sf::Color::White);
     text.setCharacterSize(18);
     text.setLineSpacing(2);
@@ -200,12 +235,14 @@ int main() {
     std::optional<sf::Event> event;
     window.create(sf::VideoMode(sf::Vector2u(windowSize.x, windowSize.y)), "Yugioh Image Guessor");
     window.setKeyRepeatEnabled(false);
-
+    std::cout << "Press D for more Info (level 1 to Level 4)" << std::endl <<
+    "Press Space for next card" << std::endl <<
+    "Press Enter to submit a guess!" << std::endl;
     while(window.isOpen()) {
         while((event = window.pollEvent())) {
             if(event->is<sf::Event::Closed>())
                 window.close();
-            if(event->is<sf::Event::KeyPressed>()) {
+            if(event->is<sf::Event::KeyPressed>() && !typing) {
                 if(event->getIf<sf::Event::KeyPressed>()->code == sf::Keyboard::Key::Space) {
                     //Next Card
                     valid = returnRandomCard(data, info);
@@ -217,7 +254,17 @@ int main() {
                     text.setString(info);
                 }
                 if(event->getIf<sf::Event::KeyPressed>()->code == sf::Keyboard::Key::Enter && valid) {
-                    //Finish Current / Go all the way to the end
+                    typing = true;
+                    char guess[201];
+                    std::strcpy(guess, "");
+                    std::cout << "Type Your Answer(Case Sensitive!!!): ";
+                    std::cin.getline(guess, 200);
+                    std::cout << "Checking" << std::endl;
+                    if(guess == data["data"][cardValue]["name"].asString())
+                        std::cout << "Correct!!!" << std::endl;
+                    else
+                        std::cout << "Incorrect, PepoSadge or Impossible to Type LMAO" << std::endl;
+                    typing = false;
                 }
             }
         }
