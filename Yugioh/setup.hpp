@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef SETUP_HPP_INCLUDED
 #define SETUP_HPP_INCLUDED
 
