@@ -9,7 +9,7 @@
 #include <json/json.h>
 #include <time.h>
 
-constexpr inline sf::Vector2f windowSize = {1000.0, 500.0};
+constexpr inline sf::Vector2f windowSize = {1000.0, 600.0};
 constexpr inline sf::Vector2f resolutionScalePos = {21.0f / 177.0f, 45.0f / 254.0f};
 constexpr inline float resolutionScale = 137.0f / 177.0f;
 constexpr inline int lineAmount = 45;
@@ -211,6 +211,7 @@ void nextLevel(Json::Value& ygoData, std::string& stringRef) { //Does not store 
             std::cout << cardValue << ": " << ygoData["data"][cardValue]["name"].asString() << std::endl;
         }
         valid = false;
+        level = 4;
     }
 }
 
