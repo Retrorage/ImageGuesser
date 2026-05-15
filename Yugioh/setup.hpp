@@ -17,7 +17,12 @@ constexpr inline int lineAmount = 45;
 inline unsigned int level = 1; //For Image Level
 inline unsigned int type = 1; //For Random Info
 inline unsigned int cardValue = 1;
+inline unsigned int prevValue = 1;
+inline unsigned int numberOfCardsGuessed = 0;
+inline unsigned int teamScore = 0;
 inline bool valid = false;
+inline bool typing = false;
+inline bool score = true;
 inline sf::Rect<int> rect;
 inline sf::RectangleShape card;
 sf::Font font;
@@ -35,7 +40,7 @@ void SetUp() {
     maxRes = {static_cast<float>(tex.getSize().x), static_cast<float>(tex.getSize().y)};
     maxPos = {maxRes.x * resolutionScalePos.x, maxRes.y * resolutionScalePos.y};
     float boxRes = maxRes.x * resolutionScale;
-    levelValue[0] = {static_cast<int>(boxRes * 0.20), static_cast<int>(boxRes * 0.20)};
+    levelValue[0] = {static_cast<int>(boxRes * 0.25), static_cast<int>(boxRes * 0.25)};
     levelValue[1] = {static_cast<int>(boxRes * 0.35), static_cast<int>(boxRes * 0.35)};
     levelValue[2] = {static_cast<int>(boxRes * 0.60), static_cast<int>(boxRes * 0.60)};
     levelValue[3] = {static_cast<int>(boxRes * 1.0f), static_cast<int>(boxRes * 1.0f)};
@@ -53,13 +58,16 @@ void SetUp() {
 
 bool returnRandomCard(Json::Value& ygoData, std::string& stringRef) {
     int numberOfYugiohCards = ygoData["data"].size();
+    srand(time(NULL));
+    prevValue = cardValue;
+    cardValue = rand() % numberOfYugiohCards;
+    if(cardValue != prevValue) {
     stringRef.clear();
     level = 0;
     std::cout << "Number of Cards: " << numberOfYugiohCards << std::endl;
-    srand(time(NULL));
-    cardValue = rand() % numberOfYugiohCards;
     type = (rand() % 3);
     type++;
+    numberOfCardsGuessed++;
     if(!ygoData["data"].isValidIndex(cardValue)) {
         std::cout << "Failed to pull card." << std::endl;
         if(!tex.loadFromFile("pics/55144522.jpg"))
@@ -79,6 +87,7 @@ bool returnRandomCard(Json::Value& ygoData, std::string& stringRef) {
     else {
         std::cout << "Failed to load" << std::endl;
         return false;
+    }
     }
     return true;
 }
@@ -100,6 +109,9 @@ void nextLevel(Json::Value& ygoData, std::string& stringRef) { //Does not store 
             if(found != std::string::npos) { //Monster Cards
             switch(type) {
             case 1:
+                stringRef.append("Set Origin: ");
+                stringRef.append(ygoData["data"][cardValue]["card_sets"][0]["set_name"].asString());
+                stringRef.append("\n");
                 stringRef.append("Level: ");
                 stringRef.append(ygoData["data"][cardValue]["level"].asString());
                 stringRef.append("\n");

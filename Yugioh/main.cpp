@@ -39,7 +39,14 @@ int main() {
     sf::Text text(font);
     sf::Text user(font);
     sf::Text directions(font);
-    bool typing = false;
+    sf::Text number(font);
+    number.setFillColor(sf::Color::White);
+    number.setOutlineColor(sf::Color::Black);
+    number.setOutlineThickness(2);
+    number.setCharacterSize(36);
+    number.setLineSpacing(1);
+    number.setPosition({0, 0});
+    number.setString(std::to_string(numberOfCardsGuessed));
     text.setFillColor(sf::Color::White);
     text.setCharacterSize(18);
     text.setLineSpacing(1);
@@ -75,9 +82,19 @@ int main() {
                 if(event->getIf<sf::Event::KeyPressed>()->code == sf::Keyboard::Key::Space) {
                     //Next Card
                     valid = returnRandomCard(data, info);
-                    text.setString(info);
-                    guess = "";
-                    user.setString(guess);
+                    if(!valid) {
+                        guess = "Failed to Load Card";
+                        user.setString(guess);
+                    }
+                    else {
+                        text.setString(info);
+                        score = true;
+                        guess = "";
+                        user.setString(guess);
+                        number.setString(std::to_string(numberOfCardsGuessed) +
+                                         " | Score: " + std::to_string(teamScore) +
+                                         " | " + std::to_string(numberOfCardsGuessed * 4));
+                    }
                 }
                 if(event->getIf<sf::Event::KeyPressed>()->code == sf::Keyboard::Key::D && valid) {
                     //Next Image / Info
@@ -86,9 +103,10 @@ int main() {
                     if(level == 4) {
                         guess = "Answer is " + data["data"][cardValue]["name"].asString();
                         user.setString(guess);
+                        score = false;
                     }
                 }
-                if(event->getIf<sf::Event::KeyPressed>()->code == sf::Keyboard::Key::Enter && valid) {
+                if(event->getIf<sf::Event::KeyPressed>()->code == sf::Keyboard::Key::Enter && valid && score) {
                     typing = true;
                     guess = "Type Your Answer(Case Sensitive!!!): ";
                     user.setString(guess);
@@ -102,12 +120,17 @@ int main() {
                     if(finalString == data["data"][cardValue]["name"].asString()) {
                         std::cout << "Correct!!!" << std::endl;
                         guess = "Correct!!!";
+                        teamScore =+ teamScore + (5 - (level + 1));
+                        score = false;
                     }
                     else {
-                        std::cout << "Incorrect, PepoSadge or Impossible to Type LMAO" << std::endl;
-                        guess = "Incorrect, PepoSadge or Impossible to Type LMAO";
+                        //std::cout << "Incorrect, PepoSadge or Impossible to Type LMAO" << std::endl;
+                        guess = "Incorrect, PepoSadge or Impossible to Type LMAO, Try Again!";
                     }
                     user.setString(guess);
+                    number.setString(std::to_string(numberOfCardsGuessed) +
+                                         " | Score: " + std::to_string(teamScore) +
+                                         " | " + std::to_string(numberOfCardsGuessed * 4));
                     typing = false;
                     break;
                 }
@@ -139,6 +162,7 @@ int main() {
         window.draw(text);
         window.draw(directions);
         window.draw(user);
+        window.draw(number);
         window.display();
     }
     return 0;
