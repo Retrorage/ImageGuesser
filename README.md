@@ -43,6 +43,10 @@ cmake .. -DCMAKE_BUILD_TYPE=Release -GNinja
 cmake --build . -j $(nproc)
 ```
 
+`pkg-config` is used to find the dependencies
+
+<br/>
+
 If building for Windows on Unix, you can use the provided toolchain file:
 ```sh
 mkdir build
