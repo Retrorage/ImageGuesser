@@ -35,7 +35,9 @@ Additionally, the `assets` folder must be in the same directory as the executabl
 > The msvc compiler is not supported when building through cmake, as the project uses clang/gcc-style compiler flags.
 > If building on windows, use `clang-cl` or a [mingw](https://www.mingw-w64.org/) environment instead
 
-Building from source is done through cmake. For example:
+> `pkg-config` is used to find the dependencies
+
+Building from source is done through CMake. For example:
 ```sh
 mkdir build
 cd build
@@ -43,7 +45,6 @@ cmake .. -DCMAKE_BUILD_TYPE=Release -GNinja
 cmake --build . -j $(nproc)
 ```
 
-`pkg-config` is used to find the dependencies
 
 <br/>
 
