@@ -7,16 +7,16 @@
 #include <json/json.h>
 #include <time.h>
 
-#include "setup.hpp"
+#include "ImageGuesser/setup.hpp"
 
 int main() {
-    if(font.openFromFile("font.ttf"))
+    if(font.openFromFile("assets/font.ttf"))
         std::cout << "Successfully Loaded Font" << std::endl;
     else {
         std::cout << "Failed to Load Font" << std::endl;
         return 1;
     }
-    std::string filePath = "yugiohcardinfo.json";
+    std::string filePath = "assets/yugiohcardinfo.json";
     std::ifstream file(filePath, std::ifstream::binary);
 
     if(!file.is_open()) {
@@ -72,7 +72,7 @@ int main() {
     card.setScale({(windowSize.y * 5 / 6) / (maxRes.x * resolutionScale), (windowSize.y * 5 / 6) / (maxRes.x * resolutionScale)});
     card.setTexture(&tex);
     std::optional<sf::Event> event;
-    window.create(sf::VideoMode(sf::Vector2u(windowSize.x, windowSize.y)), "Yugioh Image Guessor");
+    window.create(sf::VideoMode(sf::Vector2u(windowSize.x, windowSize.y)), "Yugioh Image Guesser");
     window.setKeyRepeatEnabled(false);
 
     while(window.isOpen()) {

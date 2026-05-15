@@ -34,7 +34,7 @@ inline sf::Vector2f maxPos;
 inline sf::Vector2i levelValue[4];
 
 void SetUp() {
-    if(!tex.loadFromFile("pics/55144522.jpg")) {
+    if(!tex.loadFromFile("assets/pics/55144522.jpg")) {
         std::cout << "Failed To Load default card" << std::endl;
     }
 
@@ -71,11 +71,11 @@ bool returnRandomCard(Json::Value& ygoData, std::string& stringRef) {
     numberOfCardsGuessed++;
     if(!ygoData["data"].isValidIndex(cardValue)) {
         std::cout << "Failed to pull card." << std::endl;
-        if(!tex.loadFromFile("pics/55144522.jpg"))
+        if(!tex.loadFromFile("assets/pics/55144522.jpg"))
             std::cout << "Failed to load default card." << std::endl;
         return false;
     }
-    std::string cardPath = "pics/" + ygoData["data"][cardValue]["id"].asString() + ".jpg";
+    std::string cardPath = "assets/pics/" + ygoData["data"][cardValue]["id"].asString() + ".jpg";
     if(tex.loadFromFile(cardPath)) {
         std::cout << "Successful Load" << std::endl;
         sf::Vector2i rectPos;
