@@ -66,6 +66,14 @@ target_link_options(${PROJECT_NAME} PUBLIC ${JSONCPP_LDFLAGS})
 target_include_directories(${PROJECT_NAME} PUBLIC ${JSONCPP_INCLUDE_DIRS})
 target_compile_options(${PROJECT_NAME} PUBLIC ${JSONCPP_CFLAGS})
 
+pkg_search_module(LIBCURL REQUIRED libcurl)
+target_link_libraries(${PROJECT_NAME} PUBLIC ${LIBCURL_LIBRARIES})
+target_link_directories(${PROJECT_NAME} PUBLIC ${LIBCURL_LIBRARY_DIRS})
+target_link_options(${PROJECT_NAME} PUBLIC ${LIBCURL_LDFLAGS})
+target_include_directories(${PROJECT_NAME} PUBLIC ${LIBCURL_INCLUDE_DIRS})
+target_compile_options(${PROJECT_NAME} PUBLIC ${LIBCURL_CFLAGS})
+
+
 
 ### include directory ###
 target_include_directories(${PROJECT_NAME} BEFORE PUBLIC "${PROJECT_SOURCE_DIR}/include")

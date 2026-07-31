@@ -6,10 +6,13 @@
 #include <math.h>
 #include <json/json.h>
 #include <time.h>
+#include <string_view>
 
 #include "ImageGuesser/setup.hpp"
 
-int main() {
+constexpr std::string_view download_string = "download";
+
+int main(int argc, char * argv[]) {
     if(font.openFromFile("assets/font.ttf"))
         std::cout << "Successfully Loaded Font" << std::endl;
     else {
@@ -33,6 +36,15 @@ int main() {
         return 1;
     }
     file.close();
+
+    if(argc > 1) {
+        if(strlen(argv[1]) == download_string.size()) {
+           if(memcmp(download_string.data(), argv[1], download_string.size()) == 0) {
+               Download(data);
+               return 0;
+           }
+        }
+    }
     //std::cout << "Parsed JSON data:" << std::endl;
     //std::cout << data << std::endl;
     SetUp();
@@ -84,7 +96,7 @@ int main() {
                     //Next Card
                     valid = returnRandomCard(data, info);
                     if(!valid) {
-                        guess = "Failed to Load Card";
+                        guess = "Not a valid Card (Character Skill / Failed Load etc.), Press Space to get a new card";
                         user.setString(guess);
                     }
                     else {

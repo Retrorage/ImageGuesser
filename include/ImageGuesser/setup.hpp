@@ -2,17 +2,30 @@
 #ifndef SETUP_HPP_INCLUDED
 #define SETUP_HPP_INCLUDED
 
+#include <SFML/System/Vector2.hpp>
+#include <cstddef>
 #include <iostream>
 #include <fstream>
+#include <cstring>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 #include <math.h>
 #include <json/json.h>
 #include <time.h>
+#include <curl/curl.h>
+
+inline size_t download_YgoProDeckImage(char *ptr, size_t, size_t nmemb, void *userdata) {
+    std::vector<std::byte>* bytes = reinterpret_cast<std::vector<std::byte>*>(userdata);
+    size_t oldSize = bytes->size();
+    bytes->resize(oldSize + nmemb);
+    memcpy(bytes->data() + oldSize, ptr, nmemb);
+    return nmemb;
+};
+
 
 constexpr inline sf::Vector2f windowSize = {1000.0, 600.0};
-constexpr inline sf::Vector2f resolutionScalePos = {21.0f / 177.0f, 45.0f / 254.0f};
-constexpr inline float resolutionScale = 137.0f / 177.0f;
+constexpr inline sf::Vector2f resolutionScalePos = {85.0f / 813.0f, 205.0f / 1185.0f};
+constexpr inline float resolutionScale = 640.0f / 813.0f;
 constexpr inline int lineAmount = 45;
 
 inline unsigned int level = 1; //For Image Level
@@ -26,25 +39,67 @@ inline bool typing = false;
 inline bool score = true;
 inline sf::Rect<int> rect;
 inline sf::RectangleShape card;
-sf::Font font;
-sf::Texture tex;
+inline sf::Font font;
+inline sf::Texture tex;
+inline sf::Texture pendBlockTex;
 
 inline sf::Vector2f maxRes;
 inline sf::Vector2f maxPos;
 inline sf::Vector2i levelValue[4];
+inline sf::Vector2i rectPos;
 
-void SetUp() {
-    if(!tex.loadFromFile("assets/pics/55144522.jpg")) {
+inline void SetUp() {
+    if(!tex.loadFromFile("assets/hiResPics/55144522.jpg")) {
         std::cout << "Failed To Load default card" << std::endl;
+    }
+    if(!pendBlockTex.loadFromFile("assets/pendblock.png")) {
+        std::cout << "Failed To Load pendblock asset" << std::endl;
     }
 
     maxRes = {static_cast<float>(tex.getSize().x), static_cast<float>(tex.getSize().y)};
     maxPos = {maxRes.x * resolutionScalePos.x, maxRes.y * resolutionScalePos.y};
     float boxRes = maxRes.x * resolutionScale;
     levelValue[0] = {static_cast<int>(boxRes * 0.25), static_cast<int>(boxRes * 0.25)};
-    levelValue[1] = {static_cast<int>(boxRes * 0.35), static_cast<int>(boxRes * 0.35)};
-    levelValue[2] = {static_cast<int>(boxRes * 0.60), static_cast<int>(boxRes * 0.60)};
+    levelValue[1] = {static_cast<int>(boxRes * 0.45), static_cast<int>(boxRes * 0.45)};
+    levelValue[2] = {static_cast<int>(boxRes * 0.70), static_cast<int>(boxRes * 0.70)};
     levelValue[3] = {static_cast<int>(boxRes * 1.0f), static_cast<int>(boxRes * 1.0f)};
+}
+
+inline void Download(Json::Value& ygoData) {
+    int numberOfYugiohCards = ygoData["data"].size();
+    std::string cardPath;
+    std::string curlLink;
+    std::vector<std::byte> imgData;
+    CURL *curl = curl_easy_init();
+    CURLcode result;
+    if(!curl) {
+        std::cout << "Curl Failed" << std::endl;
+    }
+    for(int i = 0; i < numberOfYugiohCards; i++) {
+        if(!ygoData["data"].isValidIndex(cardValue)) {
+            std::cout << "Failed to pull card" << std::endl;
+            continue;
+        }
+        cardPath = "assets/hiResPics/" + ygoData["data"][i]["id"].asString() + ".jpg";
+        if(tex.loadFromFile(cardPath)) {
+            continue;
+        }
+        std::cout << cardPath << " not found, downloading" << std::endl;
+        curlLink = "https://images.ygoprodeck.com/images/cards/" + ygoData["data"][i]["id"].asString() + ".jpg";
+        curl_easy_setopt(curl, CURLOPT_URL, curlLink.c_str());
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &imgData);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &download_YgoProDeckImage);
+
+        result = curl_easy_perform(curl);
+        if(result != CURLE_OK) {
+            std::cout << "Failed to download" << std::endl;
+            continue;
+        }
+        std::ofstream outfile(cardPath, std::ios::binary);
+        outfile.write(reinterpret_cast<const char*>(imgData.data()), imgData.size());
+        curl_easy_reset(curl);
+        imgData.clear();
+    }
 }
 
 //Monster Random Info
@@ -57,28 +112,27 @@ void SetUp() {
 //type 2: Set
 //type 3: desc
 
-bool returnRandomCard(Json::Value& ygoData, std::string& stringRef) {
+inline bool returnRandomCard(Json::Value& ygoData, std::string& stringRef) {
     int numberOfYugiohCards = ygoData["data"].size();
     srand(time(NULL));
     prevValue = cardValue;
     cardValue = rand() % numberOfYugiohCards;
     if(cardValue != prevValue) {
+    numberOfCardsGuessed++;
     stringRef.clear();
     level = 0;
     std::cout << "Number of Cards: " << numberOfYugiohCards << std::endl;
     type = (rand() % 3);
     type++;
-    numberOfCardsGuessed++;
     if(!ygoData["data"].isValidIndex(cardValue)) {
-        std::cout << "Failed to pull card." << std::endl;
-        if(!tex.loadFromFile("assets/pics/55144522.jpg"))
+        std::cout << "Failed to pull card, Load New Card" << std::endl;
+        if(!tex.loadFromFile("assets/hiResPics/55144522.jpg"))
             std::cout << "Failed to load default card." << std::endl;
         return false;
     }
-    std::string cardPath = "assets/pics/" + ygoData["data"][cardValue]["id"].asString() + ".jpg";
+    std::string cardPath = "assets/hiResPics/" + ygoData["data"][cardValue]["id"].asString() + ".jpg";
     if(tex.loadFromFile(cardPath)) {
         std::cout << "Successful Load" << std::endl;
-        sf::Vector2i rectPos;
         rectPos.x = static_cast<int>(maxPos.x) + (rand() % (static_cast<int>(maxRes.x * resolutionScale) + 1 - levelValue[level].x));
         rectPos.y = static_cast<int>(maxPos.y) + (rand() % (static_cast<int>(maxRes.x * resolutionScale) + 1 - levelValue[level].x));
         rect = sf::Rect<int>(rectPos, levelValue[level]);
@@ -89,16 +143,27 @@ bool returnRandomCard(Json::Value& ygoData, std::string& stringRef) {
         std::cout << "Failed to load" << std::endl;
         return false;
     }
+    if(ygoData["data"][cardValue]["type"].asString().compare("Skill Card") == 0) {
+        std::cout << "Loaded Skill Card" << std::endl;
+        return false;
+    }
+    size_t found = ygoData["data"][cardValue]["type"].asString().find("Pendulum");
+    if(found != std::string::npos) {
+        tex.update(pendBlockTex, sf::Vector2u(112, 740));
+    }
     }
     return true;
 }
 
-void nextLevel(Json::Value& ygoData, std::string& stringRef) { //Does not store history so going back is more complex than I am willing to put time in LMAO
+inline void nextLevel(Json::Value& ygoData, std::string& stringRef) { //Does not store history so going back is more complex than I am willing to put time in LMAO
     if(level < 3) {
         level++;
-        sf::Vector2i rectPos;
-        rectPos.x = static_cast<int>(maxPos.x) + (rand() % (static_cast<int>(maxRes.x * resolutionScale) + 1 - levelValue[level].x));
-        rectPos.y = static_cast<int>(maxPos.y) + (rand() % (static_cast<int>(maxRes.x * resolutionScale) + 1 - levelValue[level].x));
+        if(rectPos.x + levelValue[level].x >= static_cast<int>(maxPos.x) + (static_cast<int>(maxRes.x * resolutionScale) + 1)) {
+            rectPos.x = rectPos.x - ((rectPos.x + levelValue[level].x) - (static_cast<int>(maxPos.x) + (static_cast<int>(maxRes.x * resolutionScale) + 1)));
+        }
+        if(rectPos.y + levelValue[level].y >= static_cast<int>(maxPos.y) + (static_cast<int>(maxRes.x * resolutionScale) + 1)) {
+            rectPos.y = rectPos.y - ((rectPos.y + levelValue[level].y) - (static_cast<int>(maxPos.y) + (static_cast<int>(maxRes.x * resolutionScale) + 1)));
+        }
         rect = sf::Rect<int>(rectPos, levelValue[level]);
         card.setTextureRect(rect);
         if(level >= 1) {
